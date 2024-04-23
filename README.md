@@ -5,9 +5,9 @@ Jan Kessel und Sophia Nowicki
 
 Antworten zu Fragen in der Aufgabenstellung:
 
-Im Kontext eines Komponentendiagramms dienen Ports dafür, den eine Klasse von der Umgebung abzukapseln und einen Zugangspunkt zwischen internen Strukturen und der Umgebung herzustellen. Anstatt mit der eigentlichen Klasse zu kommunizieren, werden die Operationen des Ports benutzt.
-Die Port bzw. der Port können mit Schnittstellen versehen werden, die Operationen des Ports definieren.
-Der Port kann dabei Querschnittsfunktionalitäten wie Caching oder Protokollüberwachung realisieren
+Im Kontext eines Komponentendiagramms dienen Ports dafür, eine Klasse von der Umgebung abzukapseln und einen Zugangspunkt zwischen internen Strukturen und der Umgebung herzustellen. Anstatt mit der eigentlichen Klasse zu kommunizieren, werden die Operationen des Ports benutzt.
+Die Ports bzw. der Port können mit Schnittstellen versehen werden, die Operationen des Ports definieren.
+Der Port kann dabei Querschnittsfunktionalitäten wie Caching oder Protokollüberwachung realisieren (vgl. Rupp, C., & Queins, S. (2012). UML 2 glasklar: Praxiswissen für die UML-Modellierung. Carl Hanser Verlag GmbH Co KG.).
 
 Interfaces könnten zentralisiert über ein Facade-Pattern injiziert bzw. entnommen werden. Des weiteren könnte über Frameworks wie SpringBoot o. ä. eine Dependency-Injection vorgenommen werden.
 
