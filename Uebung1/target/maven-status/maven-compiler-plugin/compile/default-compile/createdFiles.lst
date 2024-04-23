@@ -1,0 +1,7 @@
+org\hbrs\ooka\uebung1\db\DBAccess.class
+org\hbrs\ooka\uebung1\ports\Port.class
+org\hbrs\ooka\uebung1\ports\CachingPort.class
+org\hbrs\ooka\uebung1\subsystem\Hotel.class
+org\hbrs\ooka\uebung1\HotelSearch.class
+org\hbrs\ooka\uebung1\HotelRetrieval.class
+org\hbrs\ooka\uebung1\ports\SearchPort.class

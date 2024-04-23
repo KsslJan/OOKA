@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+ExternalClient-Class: org.hbrs.ooka.uebung1.HotelRetrieval
+
