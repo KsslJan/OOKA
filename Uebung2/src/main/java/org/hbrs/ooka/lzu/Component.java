@@ -30,17 +30,39 @@ public class Component implements Deployable {
 
     @Override
     public void start() {
-        //TODO_done iterate over all classes in jar and find start and stop method
-
-        // TODO only method.invoke in here
-
         //TODO ensure own classloader if duplicate class from component
         Thread thread = Lzu.getInstance().getThread(id);
         if (thread == null) {
             LOG.warn("Unable to start component {}: {}; Component was not deployed in Lzu.", id, name);
             return;
         }
-        thread.notify();
+        thread.start();
+        state = State.RUNNING;
+    }
+
+    protected static boolean validateJarPath(String pathToJar) {
+        URL[] urls = null;
+        try {
+            urls = new URL[]{URI.create("file:///" + pathToJar).toURL()};
+        } catch (MalformedURLException e) {
+            LOG.error("Given url was not valid {}", "file:///" + pathToJar, e);
+            return false;
+        }
+
+        try (JarFile jarFile = new JarFile(pathToJar)) {
+            // just to check for errors
+        } catch (IOException e) {
+            LOG.error("Could not load as jar file: {}", pathToJar, e);
+            return false;
+        }
+
+        try (URLClassLoader cl = URLClassLoader.newInstance(urls)) {
+            // just to check for errors
+        } catch (IOException e) {
+            LOG.error("Could not create class loader for: {}", pathToJar, e);
+            return false;
+        }
+        return true;
     }
 
     protected void invokeStart() {
@@ -96,18 +118,23 @@ public class Component implements Deployable {
     }
 
     @Override
-    public State getStateInformation() {
+    public State getState() {
         return state;
     }
 
     @Override
     public void stop() {
-        state.stop(this);
+        state = State.STOPPED;
+    }
+
+    @Override
+    public void setState(State state) {
+        this.state = state;
     }
 
     @Override
     public String toString() {
-        return super.getClass().getClassLoader() + "[id=" + id + ", name=" + name + "]";
+        return "[id=" + id + ", name=" + name + ", state=" + state + ", url=" + url + "]";
     }
 
     public String getUrl() {

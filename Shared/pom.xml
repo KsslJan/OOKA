@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>HelloWorld</artifactId>
+    <artifactId>Shared</artifactId>
 
     <properties>
         <maven.compiler.source>22</maven.compiler.source>
@@ -17,11 +17,4 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.hbrs.ooka</groupId>
-            <artifactId>Shared</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
 </project>

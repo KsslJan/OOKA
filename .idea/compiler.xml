@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="Uebung2" />
         <module name="OOKAUe1" />
+        <module name="Shared" />
         <module name="ComponentAssembler" />
         <module name="HelloWorld" />
       </profile>

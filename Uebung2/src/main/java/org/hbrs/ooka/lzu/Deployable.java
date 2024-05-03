@@ -11,7 +11,9 @@ public interface Deployable {
 
     String getName();
 
-    State getStateInformation();
+    State getState();
 
     void stop();
+
+    void setState(State state);
 }

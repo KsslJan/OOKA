@@ -12,6 +12,7 @@
         <module>Uebung2</module>
         <module>ComponentAssembler</module>
         <module>HelloWorld</module>
+        <module>Shared</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -22,11 +23,20 @@
     </properties>
 
     <dependencies>
-        <!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.slf4j/slf4j-api &ndash;&gt;-->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.13</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.23.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.23.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.23.1</version>
         </dependency>
     </dependencies>
 </project>
