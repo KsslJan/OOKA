@@ -1,5 +1,7 @@
 package org.hbrs.ooka.lzu;
 
+import org.hbrs.ooka.StartComponent;
+import org.hbrs.ooka.StopComponent;
 import org.hbrs.ooka.component.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,7 @@ public class Component implements Deployable {
     private State state;
     private final String name;
     private final String url;
+    private Method stopMethod;
 
     public Component(String id, String name, String url) {
         this.id = id;
@@ -30,7 +33,6 @@ public class Component implements Deployable {
 
     @Override
     public void start() {
-        //TODO ensure own classloader if duplicate class from component
         Thread thread = Lzu.getInstance().getThread(id);
         if (thread == null) {
             LOG.warn("Unable to start component {}: {}; Component was not deployed in Lzu.", id, name);
@@ -84,6 +86,7 @@ public class Component implements Deployable {
                 String className = je.getName().substring(0, je.getName().length() - 6); // -6 because of ".class"
                 className = className.replace('/', '.');
                 Class<?> startClass = cl.loadClass(className);
+                // create object from class with empty constructor
                 Object object = startClass.getConstructor(null).newInstance(null);
 
 //                System.out.println("className" + className);
@@ -96,15 +99,19 @@ public class Component implements Deployable {
         }
     }
 
-    private static boolean runStartMethod(Class<?> c, Object o) throws IllegalAccessException, InvocationTargetException {
+    private boolean runStartMethod(Class<?> c, Object o) throws IllegalAccessException, InvocationTargetException {
+        boolean result = false;
         for (Method declaredMethod : c.getDeclaredMethods()) {
-            if (declaredMethod.getName().equals("start")) {
+            if (declaredMethod.getAnnotation(StartComponent.class) != null) {
                 System.out.println("Invoked " + c.getName() + "." + declaredMethod.getName() + "()");
                 declaredMethod.invoke(o);
-                return true;
+                result = true;
+            }
+            if (declaredMethod.getAnnotation(StopComponent.class) != null) {
+                this.stopMethod = declaredMethod;
             }
         }
-        return false;
+        return result && stopMethod != null;
     }
 
     @Override
@@ -135,9 +142,5 @@ public class Component implements Deployable {
     @Override
     public String toString() {
         return "[id=" + id + ", name=" + name + ", state=" + state + ", url=" + url + "]";
-    }
-
-    public String getUrl() {
-        return url;
     }
 }
