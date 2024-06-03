@@ -8,13 +8,20 @@
         <outputRelativeToContentRoot value="true" />
         <module name="Uebung2" />
         <module name="OOKAUe1" />
-        <module name="Shared" />
         <module name="ComponentAssembler" />
+        <module name="backend" />
+        <module name="Shared" />
         <module name="HelloWorld" />
+        <module name="Uebung5" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="LZU" target="1.5" />
     </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="backend" options="-parameters" />
+    </option>
   </component>
 </project>

@@ -1,0 +1,13 @@
+.optionalEquipments {
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.optionalEquipments__label {
+  user-select: none;
+  cursor: pointer;
+}

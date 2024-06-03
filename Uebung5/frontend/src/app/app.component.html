@@ -1,0 +1,11 @@
+<div>
+  <div class="optionalEquipments">
+    @for (optionalEquipment of optionalEquipments; track optionalEquipment.id) {
+      <div (click)="toggleSelection(optionalEquipment)">
+        <input type="checkbox" [value]="optionalEquipment.value"/>
+        <label class="optionalEquipments__label"> {{ optionalEquipment }} </label>
+      </div>
+    }
+  </div>
+</div>
+
