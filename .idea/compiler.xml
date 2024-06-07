@@ -20,6 +20,7 @@
         <module name="FluidAnalysis" />
         <module name="backend" />
         <module name="Uebung5" />
+        <module name="AnalysisStarter" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -28,6 +29,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="AnalysisStarter" options="-parameters" />
       <module name="EngineAnalysis" options="-parameters" />
       <module name="ExhaustMountingAnalysis" options="-parameters" />
       <module name="FluidAnalysis" options="-parameters" />

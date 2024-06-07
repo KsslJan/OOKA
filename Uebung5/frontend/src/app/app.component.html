@@ -1,11 +1,38 @@
 <div>
-  <div class="optionalEquipments">
-    @for (optionalEquipment of optionalEquipments; track optionalEquipment.id) {
-      <div (click)="toggleSelection(optionalEquipment)">
-        <input type="checkbox" [value]="optionalEquipment.value"/>
-        <label class="optionalEquipments__label"> {{ optionalEquipment }} </label>
-      </div>
+  <app-layout>
+    <ng-container slot="topbar">
+      <app-topbar></app-topbar>
+    </ng-container>
+
+    <div class="app-grid grid grid-cols-3">
+      @for (optionalEquipment of optionalEquipments; track optionalEquipment.id) {
+        <div class="flex items-center px-4 py-2">
+          <input type="checkbox" [checked]="optionalEquipment.value"/>
+        </div>
+        <div class="flex items-center px-4 py-2">
+          <label class="optionalEquipments__label"
+                 (click)="toggleSelection(optionalEquipment)"> {{ optionalEquipment.name }} </label>
+        </div>
+        <div class="flex items-center px-8 py-2">
+          <app-chip [status]="optionalEquipment.status"></app-chip>
+        </div>
+      }
+    </div>
+
+    @if (showResult) {
+      <app-expansion-panel [open]="true" summary="Result:">
+
+      </app-expansion-panel>
     }
-  </div>
+
+    <ng-container slot="sidebar">
+      <h1 class="font-semibold text-lg">Description:</h1>
+
+
+      <app-button class="m-4 flex self-end" (click)="startAnalysis()">
+        Analyse selected equipment
+      </app-button>
+    </ng-container>
+  </app-layout>
 </div>
 

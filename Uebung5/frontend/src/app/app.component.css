@@ -11,3 +11,12 @@
   user-select: none;
   cursor: pointer;
 }
+
+.app-grid {
+  display: grid;
+  grid-template-columns: max-content auto max-content;
+}
+
+.chip {
+  inline-size: fit-content;
+}
