@@ -6,12 +6,19 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="GearBoxOptionsAnalysis" />
+        <module name="ComponentAssembler" />
+        <module name="TransmissionAnalysis" />
+        <module name="Shared" />
+        <module name="Starter" />
+        <module name="EngineAnalysis" />
+        <module name="HelloWorld" />
+        <module name="StartingSystemAnalysis" />
         <module name="Uebung2" />
         <module name="OOKAUe1" />
-        <module name="ComponentAssembler" />
+        <module name="ExhaustMountingAnalysis" />
+        <module name="FluidAnalysis" />
         <module name="backend" />
-        <module name="Shared" />
-        <module name="HelloWorld" />
         <module name="Uebung5" />
       </profile>
     </annotationProcessing>
@@ -21,6 +28,13 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="EngineAnalysis" options="-parameters" />
+      <module name="ExhaustMountingAnalysis" options="-parameters" />
+      <module name="FluidAnalysis" options="-parameters" />
+      <module name="GearBoxOptionsAnalysis" options="-parameters" />
+      <module name="Starter" options="-parameters" />
+      <module name="StartingSystemAnalysis" options="-parameters" />
+      <module name="TransmissionAnalysis" options="-parameters" />
       <module name="backend" options="-parameters" />
     </option>
   </component>

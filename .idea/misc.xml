@@ -14,6 +14,15 @@
         <option value="$PROJECT_DIR$/Uebung5/pom.xml" />
         <option value="$PROJECT_DIR$/untitled/pom.xml" />
         <option value="$PROJECT_DIR$/Uebung5/backend/pom.xml" />
+        <option value="$PROJECT_DIR$/Uebung5/backend/StarterMS/pom.xml" />
+        <option value="$PROJECT_DIR$/Uebung5/backend/FluidAnalysisMs/pom.xml" />
+        <option value="$PROJECT_DIR$/Uebung5/backend/EngineAnalysis/pom.xml" />
+        <option value="$PROJECT_DIR$/Uebung5/backend/TransmissionAnalysis/pom.xml" />
+        <option value="$PROJECT_DIR$/Uebung5/backend/FluidAnalysis/pom.xml" />
+        <option value="$PROJECT_DIR$/Uebung5/backend/Starter/pom.xml" />
+        <option value="$PROJECT_DIR$/Uebung5/backend/GearBoxOptionsAnalysis/pom.xml" />
+        <option value="$PROJECT_DIR$/Uebung5/backend/StartingSystemAnalysis/pom.xml" />
+        <option value="$PROJECT_DIR$/Uebung5/backend/ExhaustMountingAnalysis/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
