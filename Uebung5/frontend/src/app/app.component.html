@@ -6,12 +6,12 @@
 
     <div class="app-grid grid grid-cols-3">
       @for (optionalEquipment of optionalEquipments; track optionalEquipment.id) {
-        <div class="flex items-center px-4 py-2">
-          <input type="checkbox" [checked]="optionalEquipment.value"/>
+        <div class="optionalEquipments__label flex items-center px-4 py-2" (click)="toggleSelection(optionalEquipment)">
+          <input type="checkbox" [checked]="optionalEquipment.selected"
+                 (change)="toggleSelection(optionalEquipment)"/>
         </div>
-        <div class="flex items-center px-4 py-2">
-          <label class="optionalEquipments__label"
-                 (click)="toggleSelection(optionalEquipment)"> {{ optionalEquipment.name }} </label>
+        <div class="optionalEquipments__label flex items-center px-4 py-2" (click)="toggleSelection(optionalEquipment)">
+          <label> {{ optionalEquipment.name }} </label>
         </div>
         <div class="flex items-center px-8 py-2">
           <app-chip [status]="optionalEquipment.status"></app-chip>
@@ -21,13 +21,17 @@
 
     @if (showResult) {
       <app-expansion-panel [open]="true" summary="Result:">
-
       </app-expansion-panel>
     }
 
     <ng-container slot="sidebar">
-      <h1 class="font-semibold text-lg">Description:</h1>
+      <h1 class="font-semibold text-lg">Page information:</h1>
 
+      <p class="text-justify">
+        The engine you selected allows you to add some optional equipment.
+        We need to run multiple checks and simulations to validate that the selected equipment works with the engine.
+        To test, please first select the optional equipment and then start the analysis of the components.
+      </p>
 
       <app-button class="m-4 flex self-end" (click)="startAnalysis()">
         Analyse selected equipment
