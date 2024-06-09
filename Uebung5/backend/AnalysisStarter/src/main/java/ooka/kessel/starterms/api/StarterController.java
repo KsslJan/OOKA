@@ -1,9 +1,15 @@
 package ooka.kessel.starterms.api;
 
 import ooka.kessel.starterms.dto.AnalysisRequest;
+import ooka.kessel.starterms.dto.AnalysisResult;
 import ooka.kessel.starterms.dto.ConfigurationRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,142 +18,82 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 public class StarterController {
 
+    private final SimpMessagingTemplate messagingTemplate;
     private final String baseUrl = "http://localhost:";
     private final String endpoint = "/analyse";
-    private final Map<String, Boolean> results = new HashMap<>();
+    private final Map<String, Boolean> results = new ConcurrentHashMap<>();
+
+    // Service to port mapping
+    private final Map<String, String> servicePortMapping = new HashMap<>();
+
+    @Autowired
+    public StarterController(SimpMessagingTemplate messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
+        initializeServicePortMapping();
+    }
 
 
+    private void initializeServicePortMapping() {
+        servicePortMapping.put("auxPTO", "8087");
+        servicePortMapping.put("coolingSystem", "8084");
+        servicePortMapping.put("fuelSystem", "8084");
+        servicePortMapping.put("engineManagementSystem", "8082");
+        servicePortMapping.put("monitoringControlSystem", "8082");
+        servicePortMapping.put("startingSystem", "8086");
+        servicePortMapping.put("exhaustSystem", "8083");
+        servicePortMapping.put("gearBoxOptions", "8085");
+        servicePortMapping.put("oilSystem", "8084");
+        servicePortMapping.put("mountingSystem", "8083");
+        servicePortMapping.put("powerTransmission", "8087");
+    }
+
+    @MessageMapping("/results")
     @PostMapping("/analyse")
+    @SendTo("/results/analysisResult")
     public ResponseEntity<Map<String, Boolean>> startAnalysis(@RequestBody AnalysisRequest analysisRequest) {
-        WebClient webClient = null;
+        ConfigurationRequest configRequest = new ConfigurationRequest("V12", "2026");
+        initializeServicePortMapping();
 
-        if (analysisRequest.isAuxPTO()) {
-            webClient = WebClient.builder().baseUrl(baseUrl).build();
-            webClient.post().uri(endpoint).body(BodyInserters.fromObject(new ConfigurationRequest("V12", "2026"))).retrieve().bodyToMono(Boolean.class).subscribe(
-                    analysisSuccessful -> {
-                        results.put("auxPTO", analysisSuccessful);
-                    }, throwable -> {
-                        System.out.println(throwable);
-                    }
-            );
+        Map<String, Boolean> analysisProperties = Map.of(
+                "auxPTO", analysisRequest.isAuxPTO(),
+                "coolingSystem", analysisRequest.isCoolingSystem(),
+                "fuelSystem", analysisRequest.isFuelSystem(),
+                "engineManagementSystem", analysisRequest.isEngineManagementSystem(),
+                "monitoringControlSystem", analysisRequest.isMonitoringControlSystem(),
+                "startingSystem", analysisRequest.isStartingSystem(),
+                "exhaustSystem", analysisRequest.isExhaustSystem(),
+                "gearBoxOptions", analysisRequest.isGearBoxOptions(),
+                "oilSystem", analysisRequest.isOilSystem(),
+                "mountingSystem", analysisRequest.isMountingSystem()
+        );
 
-        }
-
-        if (analysisRequest.isCoolingSystem()) {
-            webClient = WebClient.builder().baseUrl(baseUrl).build();
-            webClient.post().uri(endpoint).body(BodyInserters.fromObject(new ConfigurationRequest("V12", "2026"))).retrieve().bodyToMono(Boolean.class).subscribe(
-                    analysisSuccessful -> {
-                        results.put("auxPTO", analysisSuccessful);
-                    }, throwable -> {
-                        System.out.println(throwable);
-                    }
-            );
-        }
-
-        if (analysisRequest.isFuelSystem()) {
-            webClient = WebClient.builder().baseUrl(baseUrl).build();
-            webClient.post().uri(endpoint).body(BodyInserters.fromObject(new ConfigurationRequest("V12", "2026"))).retrieve().bodyToMono(Boolean.class).subscribe(
-                    analysisSuccessful -> {
-                        results.put("auxPTO", analysisSuccessful);
-                    }, throwable -> {
-                        System.out.println(throwable);
-                    }
-            );
-        }
-
-        if (analysisRequest.isEngineManagementSystem()) {
-            webClient = WebClient.builder().baseUrl(baseUrl).build();
-            webClient.post().uri(endpoint).body(BodyInserters.fromObject(new ConfigurationRequest("V12", "2026"))).retrieve().bodyToMono(Boolean.class).subscribe(
-                    analysisSuccessful -> {
-                        results.put("auxPTO", analysisSuccessful);
-                    }, throwable -> {
-                        System.out.println(throwable);
-                    }
-            );
-        }
-
-        if (analysisRequest.isMonitoringControlSystem()) {
-            webClient = WebClient.builder().baseUrl(baseUrl).build();
-            webClient.post().uri(endpoint).body(BodyInserters.fromObject(new ConfigurationRequest("V12", "2026"))).retrieve().bodyToMono(Boolean.class).subscribe(
-                    analysisSuccessful -> {
-                        results.put("auxPTO", analysisSuccessful);
-                    }, throwable -> {
-                        System.out.println(throwable);
-                    }
-            );
-        }
-
-        if (analysisRequest.isStartingSystem()) {
-            webClient = WebClient.builder().baseUrl(baseUrl).build();
-            webClient.post().uri(endpoint).body(BodyInserters.fromObject(new ConfigurationRequest("V12", "2026"))).retrieve().bodyToMono(Boolean.class).subscribe(
-                    analysisSuccessful -> {
-                        results.put("auxPTO", analysisSuccessful);
-                    }, throwable -> {
-                        System.out.println(throwable);
-                    }
-            );
-        }
-
-        if (analysisRequest.isExhaustSystem()) {
-            webClient = WebClient.builder().baseUrl(baseUrl).build();
-            webClient.post().uri(endpoint).body(BodyInserters.fromObject(new ConfigurationRequest("V12", "2026"))).retrieve().bodyToMono(Boolean.class).subscribe(
-                    analysisSuccessful -> {
-                        results.put("auxPTO", analysisSuccessful);
-                    }, throwable -> {
-                        System.out.println(throwable);
-                    }
-            );
-        }
-
-        if (analysisRequest.isGearBoxOptions()) {
-            webClient = WebClient.builder().baseUrl(baseUrl).build();
-            webClient.post().uri(endpoint).body(BodyInserters.fromObject(new ConfigurationRequest("V12", "2026"))).retrieve().bodyToMono(Boolean.class).subscribe(
-                    analysisSuccessful -> {
-                        results.put("auxPTO", analysisSuccessful);
-                    }, throwable -> {
-                        System.out.println(throwable);
-                    }
-            );
-
-        }
-
-        if (analysisRequest.isOilSystem()) {
-            webClient = WebClient.builder().baseUrl(baseUrl).build();
-            webClient.post().uri(endpoint).body(BodyInserters.fromObject(new ConfigurationRequest("V12", "2026"))).retrieve().bodyToMono(Boolean.class).subscribe(
-                    analysisSuccessful -> {
-                        results.put("auxPTO", analysisSuccessful);
-                    }, throwable -> {
-                        System.out.println(throwable);
-                    }
-            );
-        }
-
-        if (analysisRequest.isMountingSystem()) {
-            webClient = WebClient.builder().baseUrl(baseUrl).build();
-            webClient.post().uri(endpoint).body(BodyInserters.fromObject(new ConfigurationRequest("V12", "2026"))).retrieve().bodyToMono(Boolean.class).subscribe(
-                    analysisSuccessful -> {
-                        results.put("auxPTO", analysisSuccessful);
-                    }, throwable -> {
-                        System.out.println(throwable);
-                    }
-            );
-        }
-
-        if (analysisRequest.isStartingSystem()) {
-            webClient = WebClient.builder().baseUrl(baseUrl).build();
-            webClient.post().uri(endpoint).body(BodyInserters.fromObject(new ConfigurationRequest("V12", "2026"))).retrieve().bodyToMono(Boolean.class).subscribe(
-                    analysisSuccessful -> {
-                        results.put("auxPTO", analysisSuccessful);
-                    }, throwable -> {
-                        System.out.println(throwable);
-                    }
-            );
-        }
-        return new ResponseEntity<>(results, HttpStatus.OK);
+        analysisProperties.forEach((key, value) -> {
+            if (value) {
+                String port = servicePortMapping.get(key);
+                WebClient webClient = WebClient.builder().baseUrl(baseUrl + port).build();
+                webClient.post().uri(endpoint)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .body(BodyInserters.fromObject(configRequest))
+                        .retrieve()
+                        .bodyToMono(AnalysisResult.class)
+                        .doOnSuccess(result ->  {
+                            results.put(key, result.isAnalysisSuccessful());
+                            messagingTemplate.convertAndSend("/results/analysisResult", results);
+                        })
+                        .doOnError(throwable -> {
+                            results.put(key, false);
+                            messagingTemplate.convertAndSend("/results/analysisResult", results);
+                            throwable.printStackTrace();
+                        })
+                        .subscribe();
+            }
+        });
+        return new ResponseEntity<>(results, HttpStatus.ACCEPTED);
     }
 
 }
