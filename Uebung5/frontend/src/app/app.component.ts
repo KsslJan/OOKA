@@ -9,6 +9,7 @@ import {ButtonComponent} from "./button/button.component";
 import {ExpansionPanelComponent} from "./expansion-panel/expansion-panel.component";
 import {TopbarComponent} from "./topbar/topbar.component";
 import {WebsocketClientService} from "./api/websocket-client.service";
+import {ApiService} from "./api/api.service";
 
 interface OptionalEquipment {
   id: string;
@@ -25,7 +26,7 @@ interface OptionalEquipment {
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  showResult = true; //TODO set to false later
+  showResult = false;
 
   title = 'frontend';
   optionalEquipments: OptionalEquipment[] = [
@@ -55,6 +56,7 @@ export class AppComponent {
 
   startAnalysis() {
     this.showResult = !this.showResult;
+    ApiService.startAnalysis();
   }
 
   ngOnInit(): void {

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 public class StarterController {
 
     private final SimpMessagingTemplate messagingTemplate;
@@ -81,9 +83,9 @@ public class StarterController {
                         .body(BodyInserters.fromObject(configRequest))
                         .retrieve()
                         .bodyToMono(AnalysisResult.class)
-                        .doOnSuccess(result ->  {
-                            results.put(key, result.isAnalysisSuccessful());
-                            messagingTemplate.convertAndSend("/results/analysisResult", results);
+                        .doOnSuccess(result -> {
+                            messagingTemplate.convertAndSend("/results/analysisResult", result.isAnalysisSuccessful());
+                            System.out.println("Sending result: " + key + ", " + result.isAnalysisSuccessful());
                         })
                         .doOnError(throwable -> {
                             results.put(key, false);

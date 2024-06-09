@@ -1,13 +1,16 @@
 import {Injectable} from '@angular/core';
-import {Stomp} from "@stomp/stompjs";
 import {Status} from "../chip/status";
+import {Client} from "@stomp/stompjs";
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class WebsocketClientService {
-  stompClient = Stomp.client('ws://localhost:8080/gs-guide-websocket');
+  stompClient = new Client({
+    logRawCommunication: true,
+    brokerURL: 'http://localhost:8081/ws'
+  });
 
   constructor() {
     interface WsResult { // TODO
@@ -15,11 +18,13 @@ export class WebsocketClientService {
       result: Status
     }
 
+    // const webSocket = new WebSocket('http://localhost:8080/ws', "http");
+    // this.stompClient = Stomp.over(webSocket)
+
     this.stompClient.onConnect = () => {
       console.log("connecting over websocket to the server");
-      this.stompClient.subscribe('/result', (result) => {
-        // showGreeting(JSON.parse(result.body).content);
-        // TODO
+      this.stompClient.subscribe('/results/analysisResult', (result) => {
+        console.log("result came back", result);
       });
     };
 

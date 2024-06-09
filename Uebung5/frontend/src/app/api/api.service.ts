@@ -6,13 +6,26 @@ import axios from "axios";
 })
 export class ApiService {
 
-  private readonly URL_ANALYSIS_STARTER: string = "http://localhost:8081"
+  private static readonly URL_ANALYSIS_STARTER: string = "http://localhost:8081"
 
   constructor() {
 
   }
 
-  startAnalysis() {
-    return axios.post(this.URL_ANALYSIS_STARTER + "/analyse", {}, {})
+  static startAnalysis() {
+    let json = {
+      startingSystem: false,
+      auxPTO: false,
+      oilSystem: false,
+      fuelSystem: false,
+      coolingSystem: false,
+      exhaustSystem: false,
+      mountingSystem: false,
+      engineManagementSystem: true,
+      monitoringControlSystem: false,
+      powerTransmission: false,
+      gearBoxOptions: false,
+    }
+    return axios.post(this.URL_ANALYSIS_STARTER + "/analyse", json, {})
   }
 }
