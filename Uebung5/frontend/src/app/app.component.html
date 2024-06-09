@@ -5,7 +5,7 @@
     </ng-container>
 
     <div class="app-grid grid grid-cols-3">
-      @for (optionalEquipment of optionalEquipments; track optionalEquipment.id) {
+      @for (optionalEquipment of optionalEquipments; track optionalEquipment.key) {
         <div class="optionalEquipments__label flex items-center px-4 py-2" (click)="toggleSelection(optionalEquipment)">
           <input type="checkbox" [checked]="optionalEquipment.selected"
                  (change)="toggleSelection(optionalEquipment)"/>
@@ -14,13 +14,15 @@
           <label> {{ optionalEquipment.name }} </label>
         </div>
         <div class="flex items-center px-8 py-2">
-          <app-chip [status]="optionalEquipment.status"></app-chip>
+          <app-chip [status]="optionalEquipment.status!"></app-chip>
         </div>
       }
     </div>
 
     @if (showResult) {
       <app-expansion-panel [open]="true" summary="Result:">
+        <p> The results will be updated in the list above. It could take some time.</p>
+        <app-button (clicked)="resetSelection()">Reset</app-button>
       </app-expansion-panel>
     }
 
@@ -33,7 +35,7 @@
         To test, please first select the optional equipment and then start the analysis of the components.
       </p>
 
-      <app-button class="m-4 flex self-end" (click)="startAnalysis()">
+      <app-button class="m-4 flex self-end" (click)="startAnalysis()" [enabled]="isAnalysisEnabled()">
         Analyse selected equipment
       </app-button>
     </ng-container>

@@ -3,6 +3,7 @@ package ooka.kessel.starterms.api;
 import ooka.kessel.starterms.dto.AnalysisRequest;
 import ooka.kessel.starterms.dto.AnalysisResult;
 import ooka.kessel.starterms.dto.ConfigurationRequest;
+import ooka.kessel.starterms.dto.WebsocketResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -61,18 +62,18 @@ public class StarterController {
         ConfigurationRequest configRequest = new ConfigurationRequest("V12", "2026");
         initializeServicePortMapping();
 
-        Map<String, Boolean> analysisProperties = Map.of(
-                "auxPTO", analysisRequest.isAuxPTO(),
-                "coolingSystem", analysisRequest.isCoolingSystem(),
-                "fuelSystem", analysisRequest.isFuelSystem(),
-                "engineManagementSystem", analysisRequest.isEngineManagementSystem(),
-                "monitoringControlSystem", analysisRequest.isMonitoringControlSystem(),
-                "startingSystem", analysisRequest.isStartingSystem(),
-                "exhaustSystem", analysisRequest.isExhaustSystem(),
-                "gearBoxOptions", analysisRequest.isGearBoxOptions(),
-                "oilSystem", analysisRequest.isOilSystem(),
-                "mountingSystem", analysisRequest.isMountingSystem()
-        );
+        Map<String, Boolean> analysisProperties = new HashMap<>();
+        analysisProperties.put("auxPTO", analysisRequest.isAuxPTO());
+        analysisProperties.put("coolingSystem", analysisRequest.isCoolingSystem());
+        analysisProperties.put("fuelSystem", analysisRequest.isFuelSystem());
+        analysisProperties.put("engineManagementSystem", analysisRequest.isEngineManagementSystem());
+        analysisProperties.put("monitoringControlSystem", analysisRequest.isMonitoringControlSystem());
+        analysisProperties.put("startingSystem", analysisRequest.isStartingSystem());
+        analysisProperties.put("exhaustSystem", analysisRequest.isExhaustSystem());
+        analysisProperties.put("gearBoxOptions", analysisRequest.isGearBoxOptions());
+        analysisProperties.put("oilSystem", analysisRequest.isOilSystem());
+        analysisProperties.put("mountingSystem", analysisRequest.isMountingSystem());
+        analysisProperties.put("powerTransmission", analysisRequest.isPowerTransmission());
 
         analysisProperties.forEach((key, value) -> {
             if (value) {
@@ -84,12 +85,12 @@ public class StarterController {
                         .retrieve()
                         .bodyToMono(AnalysisResult.class)
                         .doOnSuccess(result -> {
-                            messagingTemplate.convertAndSend("/results/analysisResult", result.isAnalysisSuccessful());
+                            messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(key, result.isAnalysisSuccessful()) {
+                            });
                             System.out.println("Sending result: " + key + ", " + result.isAnalysisSuccessful());
                         })
                         .doOnError(throwable -> {
-                            results.put(key, false);
-                            messagingTemplate.convertAndSend("/results/analysisResult", results);
+                            messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(key, false));
                             throwable.printStackTrace();
                         })
                         .subscribe();

@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
 import {FormsModule} from "@angular/forms";
 import {LayoutComponent} from "./layout/layout.component";
@@ -10,13 +10,7 @@ import {ExpansionPanelComponent} from "./expansion-panel/expansion-panel.compone
 import {TopbarComponent} from "./topbar/topbar.component";
 import {WebsocketClientService} from "./api/websocket-client.service";
 import {ApiService} from "./api/api.service";
-
-interface OptionalEquipment {
-  id: string;
-  name: string;
-  selected: boolean;
-  status: Status;
-}
+import {OptionalEquipment} from "./optionalEquipment";
 
 @Component({
   selector: 'app-root',
@@ -25,15 +19,22 @@ interface OptionalEquipment {
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   showResult = false;
 
   title = 'frontend';
   optionalEquipments: OptionalEquipment[] = [
-    {id: "1", name: "exhaust", selected: false, status: Status.Selected},
-    {id: "2", name: "fluids", selected: false, status: Status.Selected},
-    {id: "3", name: "gearbox options", selected: true, status: Status.Selected},
-    {id: "4", name: "starting system", selected: true, status: Status.Selected},
+    {key: "startingSystem", name: "Starting system", selected: false},
+    {key: "auxPTO", name: "Auxiliary PTO", selected: false},
+    {key: "oilSystem", name: "Oil system", selected: false},
+    {key: "fuelSystem", name: "Fuel system", selected: false},
+    {key: "coolingSystem", name: "Cooling system", selected: false},
+    {key: "exhaustSystem", name: "Exhaust system", selected: false},
+    {key: "mountingSystem", name: "Mounting system", selected: false},
+    {key: "engineManagementSystem", name: "Engine management system", selected: false},
+    {key: "monitoringControlSystem", name: "Monitoring control system", selected: false},
+    {key: "powerTransmission", name: "Power transmission", selected: false},
+    {key: "gearBoxOptions", name: "Gearbox options", selected: false},
   ];
 
   constructor(private wsClientService: WebsocketClientService) {
@@ -54,9 +55,18 @@ export class AppComponent {
     }
   }
 
+  isAnalysisEnabled() {
+    return this.optionalEquipments.some(value => value.status === Status.Selected);
+  }
+
   startAnalysis() {
-    this.showResult = !this.showResult;
-    ApiService.startAnalysis();
+    this.showResult = true;
+    this.optionalEquipments.forEach(value => {
+      if (value.status === Status.Selected) {
+        value.status = Status.Running;
+      }
+    })
+    ApiService.startAnalysis(this.optionalEquipments);
   }
 
   ngOnInit(): void {
@@ -65,8 +75,20 @@ export class AppComponent {
     for (let oe of this.optionalEquipments) {
       AppComponent.updateStatus(oe);
     }
+
+    this.wsClientService.optionalEquipmentChanged.subscribe(webSocketResult => {
+      if (this.showResult) { // TODO not perfect, cause if too quickly restarted the result will be overwritten
+        const index = this.optionalEquipments.findIndex((item) => item.key === webSocketResult.key);
+        this.optionalEquipments[index].status = webSocketResult.value ? Status.Success : Status.Failed;
+      }
+    });
   }
 
-  protected readonly Status = Status;
-  protected readonly alert = alert;
+  resetSelection() {
+    this.optionalEquipments.forEach(optionalEquipment => {
+      optionalEquipment.selected = false;
+      optionalEquipment.status = Status.Unselected;
+      this.showResult = false;
+    });
+  }
 }

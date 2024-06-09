@@ -1,30 +1,30 @@
-import {Injectable} from '@angular/core';
-import {Status} from "../chip/status";
+import {EventEmitter, Injectable} from '@angular/core';
 import {Client} from "@stomp/stompjs";
+import {WebSocketResult} from "./WebSocketResult";
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class WebsocketClientService {
+  optionalEquipmentChanged = new EventEmitter<WebSocketResult>();
+
+  updateOptionalEquipment(optionalEquipment: WebSocketResult) {
+    this.optionalEquipmentChanged.emit(optionalEquipment);
+  }
+
   stompClient = new Client({
-    logRawCommunication: true,
     brokerURL: 'http://localhost:8081/ws'
   });
 
   constructor() {
-    interface WsResult { // TODO
-      id: string,
-      result: Status
-    }
-
-    // const webSocket = new WebSocket('http://localhost:8080/ws', "http");
-    // this.stompClient = Stomp.over(webSocket)
 
     this.stompClient.onConnect = () => {
       console.log("connecting over websocket to the server");
       this.stompClient.subscribe('/results/analysisResult', (result) => {
-        console.log("result came back", result);
+        let websocketResult = JSON.parse(result.body) as unknown as WebSocketResult;
+        console.log("result came back", websocketResult);
+        this.updateOptionalEquipment(websocketResult)
       });
     };
 

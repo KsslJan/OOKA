@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core';
 import axios from "axios";
+import {OptionalEquipment} from "../optionalEquipment";
 
 @Injectable({
   providedIn: 'root'
@@ -12,20 +13,13 @@ export class ApiService {
 
   }
 
-  static startAnalysis() {
-    let json = {
-      startingSystem: false,
-      auxPTO: false,
-      oilSystem: false,
-      fuelSystem: false,
-      coolingSystem: false,
-      exhaustSystem: false,
-      mountingSystem: false,
-      engineManagementSystem: true,
-      monitoringControlSystem: false,
-      powerTransmission: false,
-      gearBoxOptions: false,
-    }
+  static startAnalysis(optionalEquipment: OptionalEquipment[]) {
+    const json: { [key: string]: boolean } = {};
+
+    optionalEquipment.forEach((equipment) => {
+      json[equipment.key] = equipment.selected;
+    });
+
     return axios.post(this.URL_ANALYSIS_STARTER + "/analyse", json, {})
   }
 }
