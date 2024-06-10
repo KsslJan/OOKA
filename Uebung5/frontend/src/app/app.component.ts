@@ -20,7 +20,7 @@ import {OptionalEquipment} from "./optionalEquipment";
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
-  showResult = false;
+  showResult = true;
 
   title = 'frontend';
   optionalEquipments: OptionalEquipment[] = [
@@ -77,7 +77,7 @@ export class AppComponent implements OnInit {
     }
 
     this.wsClientService.optionalEquipmentChanged.subscribe(webSocketResult => {
-      if (this.showResult) { // TODO not perfect, cause if too quickly restarted the result will be overwritten
+      if (this.showResult && Status.Running) { // TODO not perfect, cause if too quickly restarted the result will be overwritten
         const index = this.optionalEquipments.findIndex((item) => item.key === webSocketResult.key);
         this.optionalEquipments[index].status = webSocketResult.value ? Status.Success : Status.Failed;
       }
@@ -90,5 +90,13 @@ export class AppComponent implements OnInit {
       optionalEquipment.status = Status.Unselected;
       this.showResult = false;
     });
+  }
+
+  protected readonly Status = Status;
+
+  getFinalStatus() {
+    if (this.optionalEquipments.some(value => value.status === Status.Running))
+      return Status.Running;
+    return this.optionalEquipments.some(value => value.status === Status.Failed) ? Status.Failed : Status.Success;
   }
 }
