@@ -30,8 +30,8 @@ public class EngineAnalysisController {
     public ResponseEntity<Map<String, Boolean>> analyseConfiguration(@RequestBody ConfigurationRequest configurationRequest) {
         // simulate
 
-        boolean analysisSuccesful = new Random().nextDouble() < 0.6;
-
+        // boolean analysisSuccessful = new Random().nextDouble() < 0.6;
+        boolean analysisSuccessful = true;
         int timeout = new Random().nextInt((6000 - 1000) + 1) + 1000;
         try {
             Thread.sleep(timeout);
@@ -39,7 +39,7 @@ public class EngineAnalysisController {
             Thread.currentThread().interrupt();
         }
         Map<String, Boolean> body = new HashMap<>();
-        body.put("analysisSuccessful", analysisSuccesful);
+        body.put("analysisSuccessful", analysisSuccessful);
         String resultString;
         try {
             resultString = objectMapper.writeValueAsString(body);
@@ -48,7 +48,7 @@ public class EngineAnalysisController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        resultProducer.sendAnalysisResult("analysis-results", "engineManagementSystem", resultString);
+        resultProducer.sendAnalysisResult("analysis-results", configurationRequest.getOptionKey(), resultString);
 
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }

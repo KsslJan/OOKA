@@ -64,7 +64,9 @@ public class StarterController {
     @PostMapping("/analyse")
     @SendTo("/results/analysisResult")
     public ResponseEntity<Map<String, Boolean>> startAnalysis(@RequestBody AnalysisRequest analysisRequest) {
-        ConfigurationRequest configRequest = new ConfigurationRequest("V12", "2026");
+        ConfigurationRequest configRequest = new ConfigurationRequest();
+        configRequest.setCylinder("V12");
+        configRequest.setGearbox("2026");
         initializeServicePortMapping();
 
         Map<String, Boolean> analysisProperties = new HashMap<>();
@@ -83,6 +85,7 @@ public class StarterController {
         analysisProperties.forEach((key, value) -> {
             if (value) {
                 String port = servicePortMapping.get(key);
+                configRequest.setOptionKey(key);
                 WebClient webClient = WebClient.builder().baseUrl(baseUrl + port).build();
                 webClient.post().uri(endpoint)
                         .accept(MediaType.APPLICATION_JSON)
