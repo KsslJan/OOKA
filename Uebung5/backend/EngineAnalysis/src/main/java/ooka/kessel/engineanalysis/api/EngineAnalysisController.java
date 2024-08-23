@@ -1,6 +1,9 @@
 package ooka.kessel.engineanalysis.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ooka.kessel.engineanalysis.dto.ConfigurationRequest;
+import ooka.kessel.engineanalysis.kafka.AnalysisResultProducer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +16,15 @@ import java.util.Random;
 
 @RestController
 public class EngineAnalysisController {
+
+    private final AnalysisResultProducer resultProducer;
+    private final ObjectMapper objectMapper;
+
+    @Autowired
+    public EngineAnalysisController(AnalysisResultProducer resultProducer, ObjectMapper objectMapper) {
+        this.resultProducer = resultProducer;
+        this.objectMapper = objectMapper;
+    }
 
     @PostMapping("/analyse")
     public ResponseEntity<Map<String, Boolean>> analyseConfiguration(@RequestBody ConfigurationRequest configurationRequest) {
@@ -28,6 +40,16 @@ public class EngineAnalysisController {
         }
         Map<String, Boolean> body = new HashMap<>();
         body.put("analysisSuccessful", analysisSuccesful);
-        return new ResponseEntity<>(body, HttpStatus.OK);
+        String resultString;
+        try {
+            resultString = objectMapper.writeValueAsString(body);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        resultProducer.sendAnalysisResult("analysis-results", "engineManagementSystem", resultString);
+
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 }
