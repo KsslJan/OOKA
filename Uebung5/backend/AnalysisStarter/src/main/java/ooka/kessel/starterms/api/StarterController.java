@@ -8,7 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -83,20 +88,25 @@ public class StarterController {
                         .accept(MediaType.APPLICATION_JSON)
                         .body(BodyInserters.fromObject(configRequest))
                         .retrieve()
-                        .bodyToMono(AnalysisResult.class)
-                        .doOnSuccess(result -> {
-                            messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(key, result.isAnalysisSuccessful()) {
-                            });
-                            System.out.println("Sending result: " + key + ", " + result.isAnalysisSuccessful());
-                        })
+                        .onStatus(httpStatusCode -> !httpStatusCode.is2xxSuccessful(),
+                                clientResponse -> Mono.error(new Exception("Failed to start analysis on service " + key)))
+                        // either way no response body expected
+                        .bodyToMono(Void.class)
                         .doOnError(throwable -> {
                             messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(key, false));
+                            System.out.println(throwable.getMessage());
                             throwable.printStackTrace();
                         })
                         .subscribe();
             }
         });
         return new ResponseEntity<>(results, HttpStatus.ACCEPTED);
+    }
+
+
+    @KafkaListener(topics = "analysis-results", groupId = "analysis-starter")
+    public void listenToAnalysisResults(@Payload AnalysisResult result, @Header(KafkaHeaders.RECEIVED_KEY) String key) {
+        messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(key, result.isAnalysisSuccessful()));
     }
 
 }
