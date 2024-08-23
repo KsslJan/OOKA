@@ -14,7 +14,7 @@ import java.util.Random;
 @RestController
 public class GearboxAnalysisController {
 
-    @PostMapping("/analysis")
+    @PostMapping("/analyse")
     public ResponseEntity<Map<String, Boolean>> analyseConfiguration(@RequestBody ConfigurationRequest configurationRequest) {
         int timeout = new Random().nextInt((6000 - 1000) + 1) + 1000;
         boolean analysisSuccesful = new Random().nextDouble() < 0.6;

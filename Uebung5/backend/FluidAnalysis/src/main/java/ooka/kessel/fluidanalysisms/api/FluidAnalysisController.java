@@ -13,7 +13,7 @@ import java.util.Random;
 
 @RestController
 public class FluidAnalysisController {
-    @PostMapping("/analysis")
+    @PostMapping("/analyse")
     public ResponseEntity<Map<String, Boolean>> analyseConfiguration(@RequestBody ConfigurationRequest configurationRequest) {
         // simulate
         boolean analysisSuccesful = new Random().nextDouble() < 0.6;
