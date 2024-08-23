@@ -19,7 +19,6 @@
         <module name="OOKAUe1" />
         <module name="ExhaustMountingAnalysis" />
         <module name="FluidAnalysis" />
-        <module name="backend" />
         <module name="Uebung5" />
         <module name="AnalysisStarter" />
       </profile>
@@ -38,7 +37,7 @@
       <module name="Starter" options="-parameters" />
       <module name="StartingSystemAnalysis" options="-parameters" />
       <module name="TransmissionAnalysis" options="-parameters" />
-      <module name="backend" options="-parameters" />
+      <module name="backend" options="" />
     </option>
   </component>
 </project>

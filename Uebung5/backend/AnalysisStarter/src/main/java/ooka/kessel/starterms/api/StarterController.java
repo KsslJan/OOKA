@@ -4,6 +4,8 @@ import ooka.kessel.starterms.dto.AnalysisRequest;
 import ooka.kessel.starterms.dto.AnalysisResult;
 import ooka.kessel.starterms.dto.ConfigurationRequest;
 import ooka.kessel.starterms.dto.WebsocketResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,6 +32,7 @@ public class StarterController {
     private final String baseUrl = "http://localhost:";
     private final String endpoint = "/analyse";
     private final Map<String, Boolean> results = new ConcurrentHashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(StarterController.class);
 
     // Service to port mapping
     private final Map<String, String> servicePortMapping = new HashMap<>();
@@ -42,6 +45,7 @@ public class StarterController {
 
 
     private void initializeServicePortMapping() {
+        logger.debug("Initializing service port mapping");
         servicePortMapping.put("auxPTO", "8087");
         servicePortMapping.put("coolingSystem", "8084");
         servicePortMapping.put("fuelSystem", "8084");
@@ -59,6 +63,7 @@ public class StarterController {
     @PostMapping("/analyse")
     @SendTo("/results/analysisResult")
     public ResponseEntity<Map<String, Boolean>> startAnalysis(@RequestBody AnalysisRequest analysisRequest) {
+        logger.debug("Received analysis request: {}", analysisRequest);
         ConfigurationRequest configRequest = new ConfigurationRequest("V12", "2026");
         initializeServicePortMapping();
 

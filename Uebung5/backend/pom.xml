@@ -8,6 +8,18 @@
         <version>3.3.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
+
+    <modules>
+        <module>AnalysisStarter</module>
+        <module>EngineAnalysis</module>
+        <module>ExhaustMountingAnalysis</module>
+        <module>FluidAnalysis</module>
+        <module>GearBoxOptionsAnalysis</module>
+        <module>StartingSystemAnalysis</module>
+        <module>TransmissionAnalysis</module>
+    </modules>
+
+    <packaging>pom</packaging>
     <groupId>ooka.kessel</groupId>
     <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -37,6 +49,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
     </dependencies>
 
