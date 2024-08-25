@@ -20,6 +20,6 @@ export class ApiService {
       json[equipment.key] = equipment.selected;
     });
 
-    return axios.post(this.URL_ANALYSIS_STARTER + "/analyse", json, {})
+    return axios.post(this.URL_ANALYSIS_STARTER + "/analyze", json, {})
   }
 }

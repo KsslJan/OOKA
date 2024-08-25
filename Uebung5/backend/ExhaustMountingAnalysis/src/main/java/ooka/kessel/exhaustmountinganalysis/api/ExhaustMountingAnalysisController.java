@@ -10,12 +10,17 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Logger;
 
 @RestController
 public class ExhaustMountingAnalysisController {
 
-    @PostMapping("/analysis")
+    private static final Logger LOG = Logger.getLogger(ExhaustMountingAnalysisController.class.getName());
+
+    @PostMapping("/analyze")
     public ResponseEntity<Map<String, Boolean>> analyseConfiguration(@RequestBody ConfigurationRequest configurationRequest) {
+        LOG.info("Received request: " + configurationRequest);
+
         // simulate
         boolean analysisSuccessful = new Random().nextDouble() < 0.6;
         int timeout = new Random().nextInt((6000 - 1000) + 1) + 1000;
@@ -28,8 +33,5 @@ public class ExhaustMountingAnalysisController {
         body.put("analysisSuccessful", analysisSuccessful);
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
-
-    // @GetMapping("analysis")
-
 
 }

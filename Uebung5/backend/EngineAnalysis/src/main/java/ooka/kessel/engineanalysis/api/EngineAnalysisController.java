@@ -10,12 +10,15 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Logger;
 
 @RestController
 public class EngineAnalysisController {
+    private static final Logger LOG = Logger.getLogger(EngineAnalysisController.class.getName());
 
-    @PostMapping("/analyse")
+    @PostMapping("/analyze")
     public ResponseEntity<Map<String, Boolean>> analyseConfiguration(@RequestBody ConfigurationRequest configurationRequest) {
+        LOG.info("Received request: " + configurationRequest);
         // simulate
 
         boolean analysisSuccesful = new Random().nextDouble() < 0.6;

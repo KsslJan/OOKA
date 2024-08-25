@@ -10,12 +10,17 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Logger;
 
 @RestController
 public class TransmissionAnalysisController {
 
-    @PostMapping("/analyse")
+    private static final Logger LOG = Logger.getLogger(TransmissionAnalysisController.class.getName());
+
+    @PostMapping("/analyze")
     public ResponseEntity<Map<String, Boolean>> analyseConfiguration(@RequestBody ConfigurationRequest configurationRequest) {
+        LOG.info("Received request: " + configurationRequest);
+
         boolean analysisSuccesful = new Random().nextDouble() < 0.6;
         int timeout = new Random().nextInt((6000 - 1000) + 1) + 1000;
         try {

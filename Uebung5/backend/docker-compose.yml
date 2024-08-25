@@ -1,0 +1,94 @@
+services:
+  microservice1:
+    image: analysis-starter
+    container_name: analysis-starter
+    build: ./AnalysisStarter
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVICE_PORT=8081
+      - ENGINE_ANALYSIS_URL=http://microservice2:8082
+      - EXHAUST_MOUNTING_SYSTEM_ANALYSIS_URL=http://microservice3:8083
+      - FLUID_ANALYSIS_URL=http://microservice4:8084
+      - GEAR_BOX_OPTIONS_ANALYSIS_URL=http://microservice5:8085
+      - STARTING_SYSTEM_ANALYSIS_URL=http://microservice6:8086
+      - TRANSMISSION_ANALYSIS_URL=http://microservice7:8087
+    networks:
+      - microservices-network
+
+  microservice2:
+    image: engine-analysis
+    container_name: microservice2
+    build: ./EngineAnalysis
+    #    ports:
+    #      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVICE_PORT=8082
+    networks:
+      - microservices-network
+
+  microservice3:
+    image: exhaust-mounting-analysis
+    container_name: microservice3
+    build: ./ExhaustMountingAnalysis
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVICE_PORT=8083
+    networks:
+      - microservices-network
+
+  microservice4:
+    image: fluid-analysis
+    container_name: microservice4
+    build: ./FluidAnalysis
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVICE_PORT=8084
+    networks:
+      - microservices-network
+
+  microservice5:
+    image: gearbox-options-analysis
+    container_name: microservice5
+    build: ./GearBoxOptionsAnalysis
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVICE_PORT=8085
+    networks:
+      - microservices-network
+
+  microservice6:
+    image: starting-system-analysis
+    container_name: microservice6
+    build: ./StartingSystemAnalysis
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVICE_PORT=8086
+    networks:
+      - microservices-network
+
+  microservice7:
+    image: transmission-analysis
+    container_name: microservice7
+    build: ./TransmissionAnalysis
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVICE_PORT=8087
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge

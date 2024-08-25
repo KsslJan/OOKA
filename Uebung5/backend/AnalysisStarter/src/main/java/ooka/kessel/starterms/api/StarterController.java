@@ -5,6 +5,7 @@ import ooka.kessel.starterms.dto.AnalysisResult;
 import ooka.kessel.starterms.dto.ConfigurationRequest;
 import ooka.kessel.starterms.dto.WebsocketResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +27,26 @@ import java.util.concurrent.ConcurrentHashMap;
 @CrossOrigin(origins = "http://localhost:4200")
 public class StarterController {
 
+    @Value("${ENGINE_ANALYSIS_URL}")
+    private String engineAnalysisUrl;
+
+    @Value("${EXHAUST_MOUNTING_SYSTEM_ANALYSIS_URL}")
+    private String exhaustMountingSystemAnalysisUrl;
+
+    @Value("${FLUID_ANALYSIS_URL}")
+    private String fluidAnalysisUrl;
+
+    @Value("${GEAR_BOX_OPTIONS_ANALYSIS_URL}")
+    private String gearBoxOptionsAnalysisUrl;
+
+    @Value("${STARTING_SYSTEM_ANALYSIS_URL}")
+    private String startingSystemAnalysisUrl;
+
+    @Value("${TRANSMISSION_ANALYSIS_URL}")
+    private String transmissionAnalysisUrl;
+
     private final SimpMessagingTemplate messagingTemplate;
-    private final String baseUrl = "http://localhost:";
-    private final String endpoint = "/analyse";
+    private final String endpoint = "/analyze";
     private final Map<String, Boolean> results = new ConcurrentHashMap<>();
 
     // Service to port mapping
@@ -42,43 +60,32 @@ public class StarterController {
 
 
     private void initializeServicePortMapping() {
-        servicePortMapping.put("auxPTO", "8087");
-        servicePortMapping.put("coolingSystem", "8084");
-        servicePortMapping.put("fuelSystem", "8084");
-        servicePortMapping.put("engineManagementSystem", "8082");
-        servicePortMapping.put("monitoringControlSystem", "8082");
-        servicePortMapping.put("startingSystem", "8086");
-        servicePortMapping.put("exhaustSystem", "8083");
-        servicePortMapping.put("gearBoxOptions", "8085");
-        servicePortMapping.put("oilSystem", "8084");
-        servicePortMapping.put("mountingSystem", "8083");
-        servicePortMapping.put("powerTransmission", "8087");
+        servicePortMapping.put("auxPTO", transmissionAnalysisUrl);
+        servicePortMapping.put("coolingSystem", fluidAnalysisUrl);
+        servicePortMapping.put("fuelSystem", fluidAnalysisUrl);
+        servicePortMapping.put("engineManagementSystem", engineAnalysisUrl);
+        servicePortMapping.put("monitoringControlSystem", engineAnalysisUrl);
+        servicePortMapping.put("startingSystem", startingSystemAnalysisUrl);
+        servicePortMapping.put("exhaustSystem", exhaustMountingSystemAnalysisUrl);
+        servicePortMapping.put("gearBoxOptions", gearBoxOptionsAnalysisUrl);
+        servicePortMapping.put("oilSystem", fluidAnalysisUrl);
+        servicePortMapping.put("mountingSystem", exhaustMountingSystemAnalysisUrl);
+        servicePortMapping.put("powerTransmission", transmissionAnalysisUrl);
     }
 
     @MessageMapping("/results")
-    @PostMapping("/analyse")
+    @PostMapping("/analyze")
     @SendTo("/results/analysisResult")
     public ResponseEntity<Map<String, Boolean>> startAnalysis(@RequestBody AnalysisRequest analysisRequest) {
         ConfigurationRequest configRequest = new ConfigurationRequest("V12", "2026");
         initializeServicePortMapping();
 
-        Map<String, Boolean> analysisProperties = new HashMap<>();
-        analysisProperties.put("auxPTO", analysisRequest.isAuxPTO());
-        analysisProperties.put("coolingSystem", analysisRequest.isCoolingSystem());
-        analysisProperties.put("fuelSystem", analysisRequest.isFuelSystem());
-        analysisProperties.put("engineManagementSystem", analysisRequest.isEngineManagementSystem());
-        analysisProperties.put("monitoringControlSystem", analysisRequest.isMonitoringControlSystem());
-        analysisProperties.put("startingSystem", analysisRequest.isStartingSystem());
-        analysisProperties.put("exhaustSystem", analysisRequest.isExhaustSystem());
-        analysisProperties.put("gearBoxOptions", analysisRequest.isGearBoxOptions());
-        analysisProperties.put("oilSystem", analysisRequest.isOilSystem());
-        analysisProperties.put("mountingSystem", analysisRequest.isMountingSystem());
-        analysisProperties.put("powerTransmission", analysisRequest.isPowerTransmission());
+        Map<String, Boolean> analysisProperties = mapAnalysisRequestToServiceKeys(analysisRequest);
 
         analysisProperties.forEach((key, value) -> {
             if (value) {
-                String port = servicePortMapping.get(key);
-                WebClient webClient = WebClient.builder().baseUrl(baseUrl + port).build();
+                String basedUrl = servicePortMapping.get(key);
+                WebClient webClient = WebClient.builder().baseUrl(basedUrl).build();
                 webClient.post().uri(endpoint)
                         .accept(MediaType.APPLICATION_JSON)
                         .body(BodyInserters.fromObject(configRequest))
@@ -97,6 +104,22 @@ public class StarterController {
             }
         });
         return new ResponseEntity<>(results, HttpStatus.ACCEPTED);
+    }
+
+    private static Map<String, Boolean> mapAnalysisRequestToServiceKeys(AnalysisRequest analysisRequest) {
+        Map<String, Boolean> analysisProperties = new HashMap<>();
+        analysisProperties.put("auxPTO", analysisRequest.isAuxPTO());
+        analysisProperties.put("coolingSystem", analysisRequest.isCoolingSystem());
+        analysisProperties.put("fuelSystem", analysisRequest.isFuelSystem());
+        analysisProperties.put("engineManagementSystem", analysisRequest.isEngineManagementSystem());
+        analysisProperties.put("monitoringControlSystem", analysisRequest.isMonitoringControlSystem());
+        analysisProperties.put("startingSystem", analysisRequest.isStartingSystem());
+        analysisProperties.put("exhaustSystem", analysisRequest.isExhaustSystem());
+        analysisProperties.put("gearBoxOptions", analysisRequest.isGearBoxOptions());
+        analysisProperties.put("oilSystem", analysisRequest.isOilSystem());
+        analysisProperties.put("mountingSystem", analysisRequest.isMountingSystem());
+        analysisProperties.put("powerTransmission", analysisRequest.isPowerTransmission());
+        return analysisProperties;
     }
 
 }
