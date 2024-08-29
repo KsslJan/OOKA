@@ -4,11 +4,16 @@ import ooka.kessel.starterms.dto.AnalysisRequest;
 import ooka.kessel.starterms.dto.AnalysisResult;
 import ooka.kessel.starterms.dto.ConfigurationRequest;
 import ooka.kessel.starterms.dto.WebsocketResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.TopicPartition;
+import org.springframework.kafka.listener.adapter.ConsumerRecordMetadata;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -22,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,6 +39,8 @@ public class StarterController {
     private final String baseUrl = "http://localhost:";
     private final String endpoint = "/analyse";
     private final Map<String, Boolean> results = new ConcurrentHashMap<>();
+
+    private static final Logger logger = LoggerFactory.getLogger(StarterController.class);
 
     // Service to port mapping
     private final Map<String, String> servicePortMapping = new HashMap<>();
@@ -89,7 +95,7 @@ public class StarterController {
                 WebClient webClient = WebClient.builder().baseUrl(baseUrl + port).build();
                 webClient.post().uri(endpoint)
                         .accept(MediaType.APPLICATION_JSON)
-                        .body(BodyInserters.fromObject(configRequest))
+                        .body(BodyInserters.fromValue(configRequest))
                         .retrieve()
                         .onStatus(httpStatusCode -> !httpStatusCode.is2xxSuccessful(),
                                 clientResponse -> Mono.error(new Exception("Failed to start analysis on service " + key)))
@@ -106,10 +112,10 @@ public class StarterController {
         return new ResponseEntity<>(results, HttpStatus.ACCEPTED);
     }
 
-
-    @KafkaListener(topics = "analysis-results", groupId = "analysis-starter")
-    public void listenToAnalysisResults(@Payload AnalysisResult result, @Header(KafkaHeaders.RECEIVED_KEY) String key) {
-        messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(key, result.isAnalysisSuccessful()));
+    @SendTo("/results/analysisResult")
+    @KafkaListener(topics = "analysis-results", groupId = "analysis-starter", topicPartitions = { @TopicPartition(topic = "analysis-results", partitions = "0") } )
+    public void listenToAnalysisResults(@Payload AnalysisResult result, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic, @Header(KafkaHeaders.RECEIVED_PARTITION) String partition, ConsumerRecordMetadata metadata) {
+        logger.info("Record received from topic " + topic + " in partition " + partition + " with message " + result + " with offset " + metadata.offset() );
+        messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(result.getOptionKey(), result.isAnalysisSuccessful()));
     }
-
 }
