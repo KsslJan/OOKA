@@ -4,15 +4,12 @@ import ooka.kessel.starterms.dto.AnalysisRequest;
 import ooka.kessel.starterms.dto.AnalysisResult;
 import ooka.kessel.starterms.dto.ConfigurationRequest;
 import ooka.kessel.starterms.dto.WebsocketResult;
+import ooka.kessel.starterms.kafka.AnalysisRequestProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.kafka.listener.adapter.ConsumerRecordMetadata;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
@@ -24,9 +21,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StarterController {
 
     private final SimpMessagingTemplate messagingTemplate;
+
+    private final AnalysisRequestProducer requestProducer;
     private final String baseUrl = "http://localhost:";
     private final String endpoint = "/analyse";
     private final Map<String, Boolean> results = new ConcurrentHashMap<>();
@@ -44,11 +41,14 @@ public class StarterController {
 
     // Service to port mapping
     private final Map<String, String> servicePortMapping = new HashMap<>();
+    private final Map<String, String> topicMapping = new HashMap<>();
 
     @Autowired
-    public StarterController(SimpMessagingTemplate messagingTemplate) {
+    public StarterController(SimpMessagingTemplate messagingTemplate, AnalysisRequestProducer requestProducer) {
         this.messagingTemplate = messagingTemplate;
+        this.requestProducer = requestProducer;
         initializeServicePortMapping();
+        initializeTopicMapping();
     }
 
 
@@ -66,10 +66,25 @@ public class StarterController {
         servicePortMapping.put("powerTransmission", "8087");
     }
 
+
+    private void initializeTopicMapping() {
+        // topicMapping.put("auxPTO", "");
+        // topicMapping.put("coolingSystem", "8084");
+        // topicMapping.put("fuelSystem", "8084");
+        topicMapping.put("engineManagementSystem", "engine-analysis");
+        topicMapping.put("monitoringControlSystem", "engine-analysis");
+        //     topicMapping.put("startingSystem", "8086");
+        //     topicMapping.put("exhaustSystem", "8083");
+        //     topicMapping.put("gearBoxOptions", "8085");
+        //     topicMapping.put("oilSystem", "8084");
+        //     topicMapping.put("mountingSystem", "8083");
+        //     topicMapping.put("powerTransmission", "8087");
+    }
+
     @MessageMapping("/results")
     @PostMapping("/analyse")
-    @SendTo("/results/analysisResult")
-    public ResponseEntity<Map<String, Boolean>> startAnalysis(@RequestBody AnalysisRequest analysisRequest) {
+    // @SendTo("/results/analysisResult")
+    public ResponseEntity<Void> startAnalysis(@RequestBody AnalysisRequest analysisRequest) {
         ConfigurationRequest configRequest = new ConfigurationRequest();
         configRequest.setCylinder("V12");
         configRequest.setGearbox("2026");
@@ -90,32 +105,33 @@ public class StarterController {
 
         analysisProperties.forEach((key, value) -> {
             if (value) {
-                String port = servicePortMapping.get(key);
+                //     String port = servicePortMapping.get(key);
+                //     configRequest.setOptionKey(key);
+                //     WebClient webClient = WebClient.builder().baseUrl(baseUrl + port).build();
+                //     webClient.post().uri(endpoint)
+                //             .accept(MediaType.APPLICATION_JSON)
+                //             .body(BodyInserters.fromValue(configRequest))
+                //             .retrieve()
+                //             .onStatus(httpStatusCode -> !httpStatusCode.is2xxSuccessful(),
+                //                     clientResponse -> Mono.error(new Exception("Failed to start analysis on service " + key)))
+                //             // either way no response body expected
+                //             .bodyToMono(Void.class)
+                //             .doOnError(throwable -> {
+                //                 logger.error(throwable.getMessage());
+                //                 messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(key, false));
+                //             })
+                //             .subscribe();
                 configRequest.setOptionKey(key);
-                WebClient webClient = WebClient.builder().baseUrl(baseUrl + port).build();
-                webClient.post().uri(endpoint)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .body(BodyInserters.fromValue(configRequest))
-                        .retrieve()
-                        .onStatus(httpStatusCode -> !httpStatusCode.is2xxSuccessful(),
-                                clientResponse -> Mono.error(new Exception("Failed to start analysis on service " + key)))
-                        // either way no response body expected
-                        .bodyToMono(Void.class)
-                        .doOnError(throwable -> {
-                            messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(key, false));
-                            System.out.println(throwable.getMessage());
-                            throwable.printStackTrace();
-                        })
-                        .subscribe();
+                requestProducer.sendAnalysisRequest(topicMapping.get(key), configRequest);
             }
         });
-        return new ResponseEntity<>(results, HttpStatus.ACCEPTED);
+        return ResponseEntity.accepted().build();
     }
 
     @SendTo("/results/analysisResult")
-    @KafkaListener(topics = "analysis-results", groupId = "analysis-starter", topicPartitions = { @TopicPartition(topic = "analysis-results", partitions = "0") } )
+    @KafkaListener(topics = "analysis-results", groupId = "analysis-starter", containerFactory = "kafkaListenerContainerFactory")
     public void listenToAnalysisResults(@Payload AnalysisResult result, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic, @Header(KafkaHeaders.RECEIVED_PARTITION) String partition, ConsumerRecordMetadata metadata) {
-        logger.info("Record received from topic " + topic + " in partition " + partition + " with message " + result + " with offset " + metadata.offset() );
+        logger.info("Record received from topic " + topic + " in partition " + partition + " with message " + result + " with offset " + metadata.offset());
         messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(result.getOptionKey(), result.isAnalysisSuccessful()));
     }
 }
