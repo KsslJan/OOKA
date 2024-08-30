@@ -82,8 +82,7 @@ public class StarterController {
     }
 
     @MessageMapping("/results")
-    @PostMapping("/analyse")
-    // @SendTo("/results/analysisResult")
+    @PostMapping("/analyze")
     public ResponseEntity<Void> startAnalysis(@RequestBody AnalysisRequest analysisRequest) {
         ConfigurationRequest configRequest = new ConfigurationRequest();
         configRequest.setCylinder("V12");
