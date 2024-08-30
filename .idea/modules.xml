@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Uebung1/OOKAUe1.iml" filepath="$PROJECT_DIR$/Uebung1/OOKAUe1.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Uebung2.iml" filepath="$PROJECT_DIR$/Uebung2.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/Uebungen.iml" filepath="$PROJECT_DIR$/.idea/Uebungen.iml" />
       <module fileurl="file://$PROJECT_DIR$/Uebung5/frontend.iml" filepath="$PROJECT_DIR$/Uebung5/frontend.iml" />
     </modules>
   </component>

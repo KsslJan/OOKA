@@ -4,20 +4,23 @@ import ooka.kessel.starterms.dto.AnalysisRequest;
 import ooka.kessel.starterms.dto.AnalysisResult;
 import ooka.kessel.starterms.dto.ConfigurationRequest;
 import ooka.kessel.starterms.dto.WebsocketResult;
+import ooka.kessel.starterms.kafka.AnalysisRequestProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.listener.adapter.ConsumerRecordMetadata;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,86 +30,66 @@ import java.util.concurrent.ConcurrentHashMap;
 @CrossOrigin(origins = "http://localhost:4200")
 public class StarterController {
 
-    @Value("${ENGINE_ANALYSIS_URL}")
-    private String engineAnalysisUrl;
-
-    @Value("${EXHAUST_MOUNTING_SYSTEM_ANALYSIS_URL}")
-    private String exhaustMountingSystemAnalysisUrl;
-
-    @Value("${FLUID_ANALYSIS_URL}")
-    private String fluidAnalysisUrl;
-
-    @Value("${GEAR_BOX_OPTIONS_ANALYSIS_URL}")
-    private String gearBoxOptionsAnalysisUrl;
-
-    @Value("${STARTING_SYSTEM_ANALYSIS_URL}")
-    private String startingSystemAnalysisUrl;
-
-    @Value("${TRANSMISSION_ANALYSIS_URL}")
-    private String transmissionAnalysisUrl;
-
     private final SimpMessagingTemplate messagingTemplate;
-    private final String endpoint = "/analyze";
+
+    private final AnalysisRequestProducer requestProducer;
+    private final String baseUrl = "http://localhost:";
+    private final String endpoint = "/analyse";
     private final Map<String, Boolean> results = new ConcurrentHashMap<>();
+
+    private static final Logger logger = LoggerFactory.getLogger(StarterController.class);
 
     // Service to port mapping
     private final Map<String, String> servicePortMapping = new HashMap<>();
+    private final Map<String, String> topicMapping = new HashMap<>();
 
     @Autowired
-    public StarterController(SimpMessagingTemplate messagingTemplate) {
+    public StarterController(SimpMessagingTemplate messagingTemplate, AnalysisRequestProducer requestProducer) {
         this.messagingTemplate = messagingTemplate;
+        this.requestProducer = requestProducer;
         initializeServicePortMapping();
+        initializeTopicMapping();
     }
 
 
     private void initializeServicePortMapping() {
-        servicePortMapping.put("auxPTO", transmissionAnalysisUrl);
-        servicePortMapping.put("coolingSystem", fluidAnalysisUrl);
-        servicePortMapping.put("fuelSystem", fluidAnalysisUrl);
-        servicePortMapping.put("engineManagementSystem", engineAnalysisUrl);
-        servicePortMapping.put("monitoringControlSystem", engineAnalysisUrl);
-        servicePortMapping.put("startingSystem", startingSystemAnalysisUrl);
-        servicePortMapping.put("exhaustSystem", exhaustMountingSystemAnalysisUrl);
-        servicePortMapping.put("gearBoxOptions", gearBoxOptionsAnalysisUrl);
-        servicePortMapping.put("oilSystem", fluidAnalysisUrl);
-        servicePortMapping.put("mountingSystem", exhaustMountingSystemAnalysisUrl);
-        servicePortMapping.put("powerTransmission", transmissionAnalysisUrl);
+        servicePortMapping.put("auxPTO", "8087");
+        servicePortMapping.put("coolingSystem", "8084");
+        servicePortMapping.put("fuelSystem", "8084");
+        servicePortMapping.put("engineManagementSystem", "8082");
+        servicePortMapping.put("monitoringControlSystem", "8082");
+        servicePortMapping.put("startingSystem", "8086");
+        servicePortMapping.put("exhaustSystem", "8083");
+        servicePortMapping.put("gearBoxOptions", "8085");
+        servicePortMapping.put("oilSystem", "8084");
+        servicePortMapping.put("mountingSystem", "8083");
+        servicePortMapping.put("powerTransmission", "8087");
+    }
+
+
+    private void initializeTopicMapping() {
+        topicMapping.put("auxPTO", "transmission-analysis");
+        topicMapping.put("powerTransmission", "transmission-analysis");
+        topicMapping.put("coolingSystem", "fluid-analysis");
+        topicMapping.put("fuelSystem", "fluid-analysis");
+        topicMapping.put("oilSystem", "fluid-analysis");
+        topicMapping.put("engineManagementSystem", "engine-analysis");
+        topicMapping.put("monitoringControlSystem", "engine-analysis");
+        topicMapping.put("mountingSystem", "exhaust-mounting-analysis");
+        topicMapping.put("exhaustSystem", "exhaust-mounting-analysis");
+        topicMapping.put("gearBoxOptions", "gearbox-analysis");
+        topicMapping.put("startingSystem", "starting-system-analysis");
     }
 
     @MessageMapping("/results")
-    @PostMapping("/analyze")
-    @SendTo("/results/analysisResult")
-    public ResponseEntity<Map<String, Boolean>> startAnalysis(@RequestBody AnalysisRequest analysisRequest) {
-        ConfigurationRequest configRequest = new ConfigurationRequest("V12", "2026");
+    @PostMapping("/analyse")
+    // @SendTo("/results/analysisResult")
+    public ResponseEntity<Void> startAnalysis(@RequestBody AnalysisRequest analysisRequest) {
+        ConfigurationRequest configRequest = new ConfigurationRequest();
+        configRequest.setCylinder("V12");
+        configRequest.setGearbox("2026");
         initializeServicePortMapping();
 
-        Map<String, Boolean> analysisProperties = mapAnalysisRequestToServiceKeys(analysisRequest);
-
-        analysisProperties.forEach((key, value) -> {
-            if (value) {
-                String basedUrl = servicePortMapping.get(key);
-                WebClient webClient = WebClient.builder().baseUrl(basedUrl).build();
-                webClient.post().uri(endpoint)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .body(BodyInserters.fromObject(configRequest))
-                        .retrieve()
-                        .bodyToMono(AnalysisResult.class)
-                        .doOnSuccess(result -> {
-                            messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(key, result.isAnalysisSuccessful()) {
-                            });
-                            System.out.println("Sending result: " + key + ", " + result.isAnalysisSuccessful());
-                        })
-                        .doOnError(throwable -> {
-                            messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(key, false));
-                            throwable.printStackTrace();
-                        })
-                        .subscribe();
-            }
-        });
-        return new ResponseEntity<>(results, HttpStatus.ACCEPTED);
-    }
-
-    private static Map<String, Boolean> mapAnalysisRequestToServiceKeys(AnalysisRequest analysisRequest) {
         Map<String, Boolean> analysisProperties = new HashMap<>();
         analysisProperties.put("auxPTO", analysisRequest.isAuxPTO());
         analysisProperties.put("coolingSystem", analysisRequest.isCoolingSystem());
@@ -119,7 +102,21 @@ public class StarterController {
         analysisProperties.put("oilSystem", analysisRequest.isOilSystem());
         analysisProperties.put("mountingSystem", analysisRequest.isMountingSystem());
         analysisProperties.put("powerTransmission", analysisRequest.isPowerTransmission());
-        return analysisProperties;
+
+        analysisProperties.forEach((key, value) -> {
+            if (value) {
+                configRequest.setOptionKey(key);
+                // Todo: Check if service is up!
+                requestProducer.sendAnalysisRequest(topicMapping.get(key), configRequest);
+            }
+        });
+        return ResponseEntity.accepted().build();
     }
 
+    @SendTo("/results/analysisResult")
+    @KafkaListener(topics = "analysis-results", groupId = "analysis-starter", containerFactory = "kafkaListenerContainerFactory")
+    public void listenToAnalysisResults(@Payload AnalysisResult result, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic, @Header(KafkaHeaders.RECEIVED_PARTITION) String partition, ConsumerRecordMetadata metadata) {
+        logger.info("Record received from topic " + topic + " in partition " + partition + " with message " + result + " with offset " + metadata.offset());
+        messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(result.getOptionKey(), result.isAnalysisSuccessful()));
+    }
 }

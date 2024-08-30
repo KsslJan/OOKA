@@ -10,5 +10,6 @@ import lombok.Setter;
 public class ConfigurationRequest {
     private String cylinder;
     private String gearbox;
+    private String optionKey;
 
 }
