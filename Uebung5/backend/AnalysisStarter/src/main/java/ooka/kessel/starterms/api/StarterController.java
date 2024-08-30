@@ -68,17 +68,17 @@ public class StarterController {
 
 
     private void initializeTopicMapping() {
-        // topicMapping.put("auxPTO", "");
-        // topicMapping.put("coolingSystem", "8084");
-        // topicMapping.put("fuelSystem", "8084");
+        topicMapping.put("auxPTO", "transmission-analysis");
+        topicMapping.put("powerTransmission", "transmission-analysis");
+        topicMapping.put("coolingSystem", "fluid-analysis");
+        topicMapping.put("fuelSystem", "fluid-analysis");
+        topicMapping.put("oilSystem", "fluid-analysis");
         topicMapping.put("engineManagementSystem", "engine-analysis");
         topicMapping.put("monitoringControlSystem", "engine-analysis");
-        //     topicMapping.put("startingSystem", "8086");
-        //     topicMapping.put("exhaustSystem", "8083");
-        //     topicMapping.put("gearBoxOptions", "8085");
-        //     topicMapping.put("oilSystem", "8084");
-        //     topicMapping.put("mountingSystem", "8083");
-        //     topicMapping.put("powerTransmission", "8087");
+        topicMapping.put("mountingSystem", "exhaust-mounting-analysis");
+        topicMapping.put("exhaustSystem", "exhaust-mounting-analysis");
+        topicMapping.put("gearBoxOptions", "gearbox-analysis");
+        topicMapping.put("startingSystem", "starting-system-analysis");
     }
 
     @MessageMapping("/results")
@@ -105,23 +105,8 @@ public class StarterController {
 
         analysisProperties.forEach((key, value) -> {
             if (value) {
-                //     String port = servicePortMapping.get(key);
-                //     configRequest.setOptionKey(key);
-                //     WebClient webClient = WebClient.builder().baseUrl(baseUrl + port).build();
-                //     webClient.post().uri(endpoint)
-                //             .accept(MediaType.APPLICATION_JSON)
-                //             .body(BodyInserters.fromValue(configRequest))
-                //             .retrieve()
-                //             .onStatus(httpStatusCode -> !httpStatusCode.is2xxSuccessful(),
-                //                     clientResponse -> Mono.error(new Exception("Failed to start analysis on service " + key)))
-                //             // either way no response body expected
-                //             .bodyToMono(Void.class)
-                //             .doOnError(throwable -> {
-                //                 logger.error(throwable.getMessage());
-                //                 messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(key, false));
-                //             })
-                //             .subscribe();
                 configRequest.setOptionKey(key);
+                // Todo: Check if service is up!
                 requestProducer.sendAnalysisRequest(topicMapping.get(key), configRequest);
             }
         });

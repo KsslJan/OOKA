@@ -1,8 +1,8 @@
-package ooka.kessel.engineanalysis.api;
+package ooka.kessel.gearboxoptionsanalysis.api;
 
-import ooka.kessel.engineanalysis.dto.AnalysisResult;
-import ooka.kessel.engineanalysis.dto.ConfigurationRequest;
-import ooka.kessel.engineanalysis.kafka.AnalysisResultProducer;
+import ooka.kessel.gearboxoptionsanalysis.dto.AnalysisResult;
+import ooka.kessel.gearboxoptionsanalysis.dto.ConfigurationRequest;
+import ooka.kessel.gearboxoptionsanalysis.kafka.AnalysisResultProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,24 +13,23 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Random;
 
 @RestController
-public class EngineAnalysisController {
+public class GearboxOptionsController {
 
     private final AnalysisResultProducer resultProducer;
 
-    private final static Logger logger = LoggerFactory.getLogger(EngineAnalysisController.class);
+    private final static Logger logger = LoggerFactory.getLogger(GearboxOptionsController.class);
 
     @Autowired
-    public EngineAnalysisController(AnalysisResultProducer resultProducer) {
+    public GearboxOptionsController(AnalysisResultProducer resultProducer) {
         this.resultProducer = resultProducer;
     }
 
-    @KafkaListener(topics = "engine-analysis", groupId = "engine-analysis-1", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "gearbox-analysis", groupId = "gearbox-options-1", containerFactory = "kafkaListenerContainerFactory")
     public void listenToConfigurationRequest(@Payload ConfigurationRequest request, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic, @Header(KafkaHeaders.RECEIVED_PARTITION) String partition, ConsumerRecordMetadata metadata) {
         boolean analysisSuccessful = new Random().nextDouble() < 0.6;
         int timeout = new Random().nextInt((6000 - 1000) + 1) + 1000;
