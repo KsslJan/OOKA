@@ -24,48 +24,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
 public class StarterController {
 
     private final SimpMessagingTemplate messagingTemplate;
-
     private final AnalysisRequestProducer requestProducer;
-    private final String baseUrl = "http://localhost:";
-    private final String endpoint = "/analyse";
-    private final Map<String, Boolean> results = new ConcurrentHashMap<>();
-
     private static final Logger logger = LoggerFactory.getLogger(StarterController.class);
 
     // Service to port mapping
-    private final Map<String, String> servicePortMapping = new HashMap<>();
     private final Map<String, String> topicMapping = new HashMap<>();
 
     @Autowired
     public StarterController(SimpMessagingTemplate messagingTemplate, AnalysisRequestProducer requestProducer) {
         this.messagingTemplate = messagingTemplate;
         this.requestProducer = requestProducer;
-        initializeServicePortMapping();
         initializeTopicMapping();
     }
-
-
-    private void initializeServicePortMapping() {
-        servicePortMapping.put("auxPTO", "8087");
-        servicePortMapping.put("coolingSystem", "8084");
-        servicePortMapping.put("fuelSystem", "8084");
-        servicePortMapping.put("engineManagementSystem", "8082");
-        servicePortMapping.put("monitoringControlSystem", "8082");
-        servicePortMapping.put("startingSystem", "8086");
-        servicePortMapping.put("exhaustSystem", "8083");
-        servicePortMapping.put("gearBoxOptions", "8085");
-        servicePortMapping.put("oilSystem", "8084");
-        servicePortMapping.put("mountingSystem", "8083");
-        servicePortMapping.put("powerTransmission", "8087");
-    }
-
 
     private void initializeTopicMapping() {
         topicMapping.put("auxPTO", "transmission-analysis");
@@ -87,7 +63,6 @@ public class StarterController {
         ConfigurationRequest configRequest = new ConfigurationRequest();
         configRequest.setCylinder("V12");
         configRequest.setGearbox("2026");
-        initializeServicePortMapping();
 
         Map<String, Boolean> analysisProperties = new HashMap<>();
         analysisProperties.put("auxPTO", analysisRequest.isAuxPTO());
@@ -115,7 +90,7 @@ public class StarterController {
     @SendTo("/results/analysisResult")
     @KafkaListener(topics = "analysis-results", groupId = "analysis-starter", containerFactory = "kafkaListenerContainerFactory")
     public void listenToAnalysisResults(@Payload AnalysisResult result, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic, @Header(KafkaHeaders.RECEIVED_PARTITION) String partition, ConsumerRecordMetadata metadata) {
-        logger.info("Record received from topic " + topic + " in partition " + partition + " with message " + result + " with offset " + metadata.offset());
+        logger.info("Record received from topic {} in partition {} with message {} with offset {}", topic, partition, result, metadata.offset());
         messagingTemplate.convertAndSend("/results/analysisResult", new WebsocketResult(result.getOptionKey(), result.isAnalysisSuccessful()));
     }
 }

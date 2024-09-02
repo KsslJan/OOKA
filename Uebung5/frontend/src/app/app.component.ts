@@ -20,7 +20,7 @@ import {OptionalEquipment} from "./optionalEquipment";
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
-  showResult = true;
+  showResult = false;
 
   title = 'frontend';
   optionalEquipments: OptionalEquipment[] = [
